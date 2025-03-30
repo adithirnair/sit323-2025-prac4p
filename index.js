@@ -5,43 +5,53 @@ const port = 3000;
 // Middleware to parse JSON requests
 app.use(express.json());
 
-// Addition endpoint
+// Function to validate inputs
+const validateInputs = (num1, num2, res, allowZero = true) => {
+    if (num1 === undefined || num2 === undefined) {
+        return res.status(400).json({ error: 'Both num1 and num2 are required.' });
+    }
+    if (isNaN(num1) || isNaN(num2)) {
+        return res.status(400).json({ error: 'Inputs must be valid numbers.' });
+    }
+    if (!allowZero && parseFloat(num2) === 0) {
+        return res.status(400).json({ error: 'Division by zero is not allowed.' });
+    }
+    return null;
+};
+
+// Arithmetic Endpoints with Improved Error Handling
 app.get('/add', (req, res) => {
     const { num1, num2 } = req.query;
-    if (!num1 || !num2 || isNaN(num1) || isNaN(num2)) {
-        return res.status(400).json({ error: 'Invalid input. Please provide two numbers.' });
-    }
+    const error = validateInputs(num1, num2, res);
+    if (error) return;
     res.json({ result: parseFloat(num1) + parseFloat(num2) });
 });
 
-// Subtraction endpoint
 app.get('/subtract', (req, res) => {
     const { num1, num2 } = req.query;
-    if (!num1 || !num2 || isNaN(num1) || isNaN(num2)) {
-        return res.status(400).json({ error: 'Invalid input. Please provide two numbers.' });
-    }
+    const error = validateInputs(num1, num2, res);
+    if (error) return;
     res.json({ result: parseFloat(num1) - parseFloat(num2) });
 });
 
-// Multiplication endpoint
 app.get('/multiply', (req, res) => {
     const { num1, num2 } = req.query;
-    if (!num1 || !num2 || isNaN(num1) || isNaN(num2)) {
-        return res.status(400).json({ error: 'Invalid input. Please provide two numbers.' });
-    }
+    const error = validateInputs(num1, num2, res);
+    if (error) return;
     res.json({ result: parseFloat(num1) * parseFloat(num2) });
 });
 
-// Division endpoint
 app.get('/divide', (req, res) => {
     const { num1, num2 } = req.query;
-    if (!num1 || !num2 || isNaN(num1) || isNaN(num2)) {
-        return res.status(400).json({ error: 'Invalid input. Please provide two numbers.' });
-    }
-    if (parseFloat(num2) === 0) {
-        return res.status(400).json({ error: 'Division by zero is not allowed.' });
-    }
+    const error = validateInputs(num1, num2, res, false);
+    if (error) return;
     res.json({ result: parseFloat(num1) / parseFloat(num2) });
+});
+
+// Global Error Handling Middleware
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).json({ error: 'Something went wrong. Please try again later.' });
 });
 
 // Start the server
